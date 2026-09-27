@@ -1,0 +1,10 @@
+# Normalize line endings: LF everywhere in the repo, CRLF only where
+# Windows tooling demands it. Keeps diffs clean across platforms.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+pnpm-lock.yaml linguist-generated=true
