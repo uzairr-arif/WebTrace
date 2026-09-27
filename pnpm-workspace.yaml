@@ -1,0 +1,15 @@
+packages:
+  - apps/*
+  - packages/*
+  - tests/*
+
+# Dependencies allowed to run install scripts (pnpm 11 security default)
+allowBuilds:
+  esbuild: true
+  playwright: true
+  spawn-sync: set this to true or false
+  wxt: true
+
+# @vitejs/plugin-react v6 peers on Vite 8; WXT 0.20 currently targets Vite ≤7.
+overrides:
+  '@vitejs/plugin-react': ^4.7.0

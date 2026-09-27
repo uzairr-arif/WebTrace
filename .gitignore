@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.output/
+dist/
+build/
+*.tsbuildinfo
+
+# WXT generated
+.wxt/
+
+# Test artifacts
+test-results/
+playwright-report/
+blob-report/
+
+# Coverage
+coverage/
+
+# Environment & local files
+.env
+.env.*
+*.local
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local agent tooling state
+.zcode/
+.zcodeignore
+
+# Logs
+*.log
+npm-debug.log*
+
+# ZCode workspace helper (auto-generated)
+.zcodeignore
