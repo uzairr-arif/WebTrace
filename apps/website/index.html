@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WebTrace — Web Request Flow Explorer</title>
+  <meta name="description" content="See how the web actually works. WebTrace turns browser network activity into an interactive, explainable flow — local, private and open source." />
+  <meta property="og:title" content="WebTrace — Web Request Flow Explorer" />
+  <meta property="og:description" content="Live flow graphs, honest Why-stories and a learning curriculum — on top of the network traffic your browser already sees. Local-first, MIT-licensed." />
+  <meta property="og:image" content="assets/live-flow.png" />
+  <meta name="theme-color" content="#0a0e16" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 17.5 L12 7 L19 13.5' stroke='%2322d3ee' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='7' r='3' fill='%2322d3ee'/%3E%3Ccircle cx='5' cy='17.5' r='2.6' fill='%2322d3ee' opacity='.55'/%3E%3Ccircle cx='19' cy='13.5' r='2.6' fill='%2322d3ee' opacity='.55'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg: #0a0e16; --surface: #101724; --raised: #182234; --line: #232f44;
+      --ink: #e7ecf5; --dim: #93a0b6; --faint: #5b687e;
+      --accent: #22d3ee; --accent-soft: rgba(34, 211, 238, 0.12);
+      --ok: #34d399; --warn: #fbbf24; --err: #f87171;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg); color: var(--ink);
+      font-family: ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+      font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+    }
+    code, .mono { font-family: ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace; }
+    .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(10, 14, 22, 0.85); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    nav .wrap { display: flex; align-items: center; gap: 10px; height: 60px; }
+    .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; }
+    .brand small { color: var(--faint); font-weight: 400; font-size: 11px; display: block; line-height: 1.1; }
+    nav .links { margin-left: auto; display: flex; gap: 22px; font-size: 13.5px; }
+    nav .links a { color: var(--dim); }
+    nav .links a:hover { color: var(--ink); text-decoration: none; }
+    @media (max-width: 760px) { nav .links a.hide-sm { display: none; } }
+
+    .btn {
+      display: inline-block; padding: 10px 20px; border-radius: 10px;
+      font-weight: 600; font-size: 14px; border: 1px solid transparent;
+      transition: opacity .15s ease, border-color .15s ease;
+    }
+    .btn:hover { text-decoration: none; opacity: .88; }
+    .btn-primary { background: var(--accent); color: #04222b; }
+    .btn-ghost { border-color: var(--line); color: var(--ink); }
+    .btn-ghost:hover { border-color: var(--accent); opacity: 1; }
+
+    header.hero { padding: 84px 0 40px; text-align: center; position: relative; overflow: hidden; }
+    header.hero::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(600px 300px at 50% -60px, rgba(34,211,238,.13), transparent 70%);
+    }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 7px;
+      border: 1px solid var(--line); border-radius: 999px;
+      padding: 5px 14px; font-size: 12.5px; color: var(--dim); background: var(--surface);
+    }
+    .eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); display: inline-block; }
+    header.hero h1 {
+      margin: 22px auto 14px; font-size: clamp(34px, 6vw, 56px); line-height: 1.08;
+      letter-spacing: -0.02em; max-width: 800px;
+    }
+    header.hero h1 .accent { color: var(--accent); }
+    header.hero p.sub { color: var(--dim); max-width: 620px; margin: 0 auto 30px; font-size: 17px; }
+    .cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    .hero-shot {
+      margin: 54px auto 0; max-width: 880px; border: 1px solid var(--line);
+      border-radius: 14px; overflow: hidden; background: var(--surface);
+      box-shadow: 0 30px 80px -30px rgba(0,0,0,.6);
+    }
+    .hero-shot .bar { display: flex; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+    .hero-shot .bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+    .hero-shot img { display: block; width: 100%; }
+
+    section { padding: 72px 0; }
+    section h2 { font-size: clamp(24px, 4vw, 32px); letter-spacing: -0.01em; margin-bottom: 10px; }
+    section .lead { color: var(--dim); max-width: 640px; margin-bottom: 34px; }
+    .kicker { color: var(--accent); font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px; }
+
+    /* compare */
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 760px) { .compare { grid-template-columns: 1fr; } }
+    .compare .panel {
+      border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 20px;
+    }
+    .compare .panel h3 { font-size: 14px; margin-bottom: 12px; color: var(--faint); text-transform: uppercase; letter-spacing: .08em; }
+    .compare .good { border-color: rgba(34, 211, 238, .45); }
+    .compare pre { font-size: 12.5px; line-height: 1.75; color: var(--dim); overflow-x: auto; }
+    .compare .good pre { color: var(--ink); }
+    .compare .good h3 { color: var(--accent); }
+
+    /* features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 900px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 620px) { .features { grid-template-columns: 1fr; } }
+    .feature {
+      border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 22px;
+    }
+    .feature .dot { width: 9px; height: 9px; border-radius: 50%; margin-bottom: 14px; }
+    .feature h3 { font-size: 15.5px; margin-bottom: 6px; }
+    .feature p { color: var(--dim); font-size: 13.5px; }
+
+    /* pipeline */
+    .pipeline {
+      border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+      padding: 26px; overflow-x: auto;
+    }
+    .pipeline pre { font-size: 13px; line-height: 1.8; color: var(--dim); }
+    .pipeline pre b { color: var(--accent); font-weight: 600; }
+
+    /* lessons */
+    .lesson-chips { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 22px; }
+    .lesson-chips span {
+      border: 1px solid var(--line); background: var(--surface); color: var(--dim);
+      border-radius: 999px; padding: 7px 15px; font-size: 13px;
+    }
+    .lesson-chips span.hot { border-color: rgba(34,211,238,.5); color: var(--accent); }
+
+    /* privacy table */
+    .priv { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 760px) { .priv { grid-template-columns: 1fr; } }
+    .priv .card { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 22px; }
+    .priv h3 { font-size: 14.5px; margin-bottom: 10px; }
+    .priv ul { list-style: none; }
+    .priv li { padding: 5px 0 5px 24px; position: relative; color: var(--dim); font-size: 13.5px; }
+    .priv li.yes::before { content: '✓'; position: absolute; left: 0; color: var(--ok); font-weight: 700; }
+    .priv li.no::before { content: '✕'; position: absolute; left: 0; color: var(--err); font-weight: 700; }
+
+    /* roadmap */
+    .roadmap { border-left: 2px solid var(--line); margin-left: 6px; padding-left: 26px; }
+    .milestone { position: relative; padding-bottom: 26px; }
+    .milestone::before {
+      content: ''; position: absolute; left: -33px; top: 5px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--bg); border: 2px solid var(--faint);
+    }
+    .milestone.done::before { background: var(--accent); border-color: var(--accent); }
+    .milestone h3 { font-size: 15px; }
+    .milestone h3 .tag { font-size: 11px; color: var(--faint); font-weight: 400; margin-left: 8px; }
+    .milestone p { color: var(--dim); font-size: 13.5px; max-width: 560px; }
+    .milestone.done h3 .tag { color: var(--ok); }
+
+    footer { border-top: 1px solid var(--line); padding: 36px 0 60px; color: var(--faint); font-size: 13px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+    footer .links { margin-left: auto; display: flex; gap: 18px; }
+    footer a { color: var(--dim); }
+    .logo-svg { display: block; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">
+      <svg class="logo-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 17.5 L12 7 L19 13.5" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="5" cy="17.5" r="2.6" fill="var(--accent)" opacity=".55"/>
+        <circle cx="19" cy="13.5" r="2.6" fill="var(--accent)" opacity=".55"/>
+        <circle cx="12" cy="7" r="3" fill="var(--accent)"/>
+      </svg>
+      <span>WebTrace<small>Web Request Flow Explorer</small></span>
+    </div>
+    <div class="links">
+      <a class="hide-sm" href="#features">Features</a>
+      <a class="hide-sm" href="#learning">Learning</a>
+      <a class="hide-sm" href="#privacy">Privacy</a>
+      <a class="hide-sm" href="#roadmap">Roadmap</a>
+      <a href="https://github.com/webtrace/webtrace">GitHub ↗</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><i></i> Open source · MIT · Local-first</span>
+    <h1>See how the web <span class="accent">actually</span> works.</h1>
+    <p class="sub">
+      WebTrace turns your browser's network activity into an interactive, explainable story —
+      what happened, why it happened, who started it, and what came next.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/webtrace/webtrace#getting-started">Get WebTrace</a>
+      <a class="btn btn-ghost" href="https://github.com/webtrace/webtrace">Star on GitHub</a>
+    </div>
+
+    <div class="hero-shot">
+      <div class="bar"><i></i><i></i><i></i></div>
+      <img src="assets/live-flow.png" alt="WebTrace dashboard — live flow graph of a page load" width="880" />
+    </div>
+  </div>
+</header>
+
+<section id="why">
+  <div class="wrap">
+    <p class="kicker">The idea</p>
+    <h2>DevTools asks “what happened?” — WebTrace asks “why?”</h2>
+    <p class="lead">A network log is a list of facts. Understanding is the story between them.</p>
+    <div class="compare">
+      <div class="panel">
+        <h3>The network tab says</h3>
+        <pre>GET  /api/products   200   124ms   42 KB
+GET  /api/user       200    89ms   12 KB
+GET  /api/missing    404    31ms    1 KB</pre>
+      </div>
+      <div class="panel good">
+        <h3>WebTrace says</h3>
+        <pre>The page loaded → app.js executed →
+fetch("/api/products") → 200 OK → JSON
+fed into state → UI updated.
+
+/api/missing failed: nothing exists at
+that URL — wrong route or removed file.</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features" style="background: var(--surface); border-block: 1px solid var(--line);">
+  <div class="wrap">
+    <p class="kicker">Features</p>
+    <h2>Everything, honest by design</h2>
+    <p class="lead">Every fact WebTrace shows is labeled <b style="color:var(--ok)">OBSERVED</b> (the browser reported it) or <b style="color:var(--faint)">DERIVED</b> (WebTrace inferred it). It never pretends to see more than it can.</p>
+    <div class="features">
+      <div class="feature">
+        <div class="dot" style="background:var(--accent)"></div>
+        <h3>Live Flow</h3>
+        <p>An interactive graph that builds itself as a page loads — documents, scripts, styles, APIs, redirects and CORS preflights, connected by honest edges.</p>
+      </div>
+      <div class="feature">
+        <div class="dot" style="background:var(--ok)"></div>
+        <h3>Explain stories</h3>
+        <p>“Why did this happen?” answers for redirects, 401s, 404s, CORS failures, cache revalidation and network errors — step by step, evidence-tagged.</p>
+      </div>
+      <div class="feature">
+        <div class="dot" style="background:var(--warn)"></div>
+        <h3>Timeline & replay</h3>
+        <p>A waterfall with queued / waiting / download phases — replay a page load at 1×, 2× or 4× and watch requests unfold in order.</p>
+      </div>
+      <div class="feature">
+        <div class="dot" style="background:var(--err)"></div>
+        <h3>Third-Party Map</h3>
+        <p>See every host your page talks to, grouped first-party vs third-party — request counts, error rates, when each one first appeared.</p>
+      </div>
+      <div class="feature">
+        <div class="dot" style="background:#a78bfa"></div>
+        <h3>Learning curriculum</h3>
+        <p>Eight lessons with quizzes — page loads, HTTP, caching, CORS, DNS/TLS, third parties — that run against the live traffic in front of you.</p>
+      </div>
+      <div class="feature">
+        <div class="dot" style="background:var(--accent)"></div>
+        <h3>Full dashboard</h3>
+        <p>A complete dashboard beside the side panel: overview charts, request explorer, stored sessions to replay, and privacy controls you can actually read.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <p class="kicker">Architecture</p>
+    <h2>One pipeline, from wire to understanding</h2>
+    <p class="lead">The brain is pure TypeScript, fully unit-tested and browser-agnostic — the extension is just pipes and paint.</p>
+    <div class="pipeline">
+<pre>   Chrome webRequest ──┐
+                       ├─► <b>normalize + redact</b> ─► TraceEvent stream
+   Chrome webNavigation ─┘            │
+                                      ▼
+                       <b>SessionManager</b> (per tab, in the background)
+                       · correlator → request records & navigation roots
+                       · batched writes to local IndexedDB
+                       · live broadcast to the UI
+                                      │
+                     ┌────────────────┴────────────────┐
+                     ▼                                 ▼
+              <b>Side panel</b> (compact)              <b>Dashboard</b> (full page)
+        flow · requests · timeline         overview · flow · requests
+        why-stories · learning             timeline · 3rd-party map
+                                           learn · sessions (replay)</pre>
+    </div>
+  </div>
+</section>
+
+<section id="learning" style="background: var(--surface); border-block: 1px solid var(--line);">
+  <div class="wrap">
+    <p class="kicker">Learning Mode</p>
+    <h2>Stop memorizing. Start recognizing.</h2>
+    <p class="lead">
+      Learning Mode overlays plain-language glossary tooltips on real traffic — and the
+      dashboard's Learn tab turns the concepts into short lessons with quizzes that explain
+      every answer.
+    </p>
+    <div class="lesson-chips">
+      <span class="hot">The life of a page load</span>
+      <span class="hot">HTTP methods & status codes</span>
+      <span class="hot">Redirects</span>
+      <span class="hot">Caching & the 304 dance</span>
+      <span class="hot">CORS & preflights</span>
+      <span class="hot">DNS & TLS</span>
+      <span>Third parties</span>
+      <span>WebSockets & SSE</span>
+    </div>
+    <div style="margin-top: 40px; display: grid; gap: 14px; grid-template-columns: 1fr 1fr;" class="shots">
+      <img src="assets/explain.png" alt="The Why panel explaining a request with OBSERVED and DERIVED badges" style="width:100%; border-radius: 12px; border: 1px solid var(--line);" />
+      <img src="assets/timeline.png" alt="The timeline waterfall with replay controls" style="width:100%; border-radius: 12px; border: 1px solid var(--line);" />
+    </div>
+  </div>
+</section>
+
+<section id="privacy">
+  <div class="wrap">
+    <p class="kicker">Privacy</p>
+    <h2>Your browsing data stays on your device</h2>
+    <p class="lead">Not a policy — an architecture. Redaction happens at ingestion, before anything is stored or rendered.</p>
+    <div class="priv">
+      <div class="card">
+        <h3>What WebTrace does</h3>
+        <ul>
+          <li class="yes">Stores traces locally, in your browser's IndexedDB</li>
+          <li class="yes">Masks Authorization, Cookie and API-key headers before storage</li>
+          <li class="yes">Redacts credential-looking query parameters (token, password…)</li>
+          <li class="yes">Lets you pause capture or wipe everything in one click</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What it never does</h3>
+        <ul>
+          <li class="no">No cloud, no account, no telemetry — zero network requests of its own</li>
+          <li class="no">Never captures request or response bodies</li>
+          <li class="no">No content scripts, no page JavaScript evaluation</li>
+          <li class="no">No profiles, scoring, or cross-site history analysis</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="wrap">
+    <p class="kicker">Roadmap</p>
+    <h2>Where this is going</h2>
+    <div class="roadmap" style="margin-top: 30px;">
+      <div class="milestone done">
+        <h3>v0.1 — Observe, explain, learn <span class="tag">shipped</span></h3>
+        <p>Live Flow, request explorer, timeline replay, explain stories, learning curriculum, dashboard, local-first storage.</p>
+      </div>
+      <div class="milestone">
+        <h3>v0.2 — Deep instrumentation <span class="tag">planned</span></h3>
+        <p>Opt-in CDP mode: real initiator stacks (script + line), precise DNS/TLS timing, WebSocket frames.</p>
+      </div>
+      <div class="milestone">
+        <h3>v0.4 — Developer toolkit <span class="tag">planned</span></h3>
+        <p>Export to .webtrace.json and HTML reports, before/after comparison, regression detection.</p>
+      </div>
+      <div class="milestone">
+        <h3>v0.5 — Full-stack tracing <span class="tag">planned</span></h3>
+        <p>@webtrace/node: optional local backend instrumentation — browser → API → controller → database, correlated by trace IDs. Still zero cloud.</p>
+      </div>
+      <div class="milestone">
+        <h3>v1.0 — Public release <span class="tag">planned</span></h3>
+        <p>Chrome Web Store + Edge Add-ons, docs site, Firefox port.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span class="brand" style="gap:8px">
+      <svg class="logo-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 17.5 L12 7 L19 13.5" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="7" r="3" fill="var(--accent)"/>
+      </svg>
+      WebTrace — see how the web actually works.
+    </span>
+    <div class="links">
+      <a href="https://github.com/webtrace/webtrace">GitHub</a>
+      <a href="https://github.com/webtrace/webtrace/blob/main/PRIVACY.md">Privacy</a>
+      <a href="https://github.com/webtrace/webtrace/blob/main/CONTRIBUTING.md">Contributing</a>
+      <a href="https://github.com/webtrace/webtrace/blob/main/LICENSE">MIT License</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
