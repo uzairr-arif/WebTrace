@@ -1,0 +1,151 @@
+@import 'tailwindcss';
+
+/*
+ * WebTrace design tokens.
+ * Themes switch via [data-theme] on <html>; the accent color is injected at
+ * runtime (--wt-accent) and everything else derives from it with color-mix.
+ * Tailwind utilities read the tokens through @theme inline, so classes like
+ * bg-surface / text-dim follow the active theme automatically.
+ */
+
+@theme inline {
+  --color-bg: var(--wt-bg);
+  --color-surface: var(--wt-surface);
+  --color-raised: var(--wt-raised);
+  --color-line: var(--wt-line);
+  --color-ink: var(--wt-ink);
+  --color-dim: var(--wt-dim);
+  --color-faint: var(--wt-faint);
+  --color-accent: var(--wt-accent);
+  --color-accent-soft: var(--wt-accent-soft);
+  --color-on-accent: var(--wt-on-accent);
+  --color-ok: var(--wt-ok);
+  --color-warn: var(--wt-warn);
+  --color-err: var(--wt-err);
+  --font-mono:
+    ui-monospace, 'Cascadia Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+}
+
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --wt-bg: #0a0e16;
+  --wt-surface: #101724;
+  --wt-raised: #182234;
+  --wt-line: #232f44;
+  --wt-ink: #e7ecf5;
+  --wt-dim: #93a0b6;
+  --wt-faint: #5b687e;
+
+  --wt-accent: #22d3ee;
+  --wt-accent-soft: color-mix(in srgb, var(--wt-accent) 13%, transparent);
+  --wt-on-accent: #04222b;
+
+  --wt-ok: #34d399;
+  --wt-warn: #fbbf24;
+  --wt-err: #f87171;
+
+  --wt-cat-document: #60a5fa;
+  --wt-cat-script: #fbbf24;
+  --wt-cat-stylesheet: #a78bfa;
+  --wt-cat-image: #34d399;
+  --wt-cat-font: #f472b6;
+  --wt-cat-xhr: #22d3ee;
+  --wt-cat-websocket: #e879f9;
+  --wt-cat-media: #2dd4bf;
+  --wt-cat-other: #94a3b8;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --wt-bg: #f5f7fb;
+  --wt-surface: #ffffff;
+  --wt-raised: #edf0f7;
+  --wt-line: #dbe1ec;
+  --wt-ink: #17202e;
+  --wt-dim: #526179;
+  --wt-faint: #8a97ac;
+
+  --wt-accent: #0891b2;
+  --wt-accent-soft: color-mix(in srgb, var(--wt-accent) 12%, transparent);
+  --wt-on-accent: #ffffff;
+
+  --wt-ok: #059669;
+  --wt-warn: #b45309;
+  --wt-err: #dc2626;
+
+  --wt-cat-document: #2563eb;
+  --wt-cat-script: #b45309;
+  --wt-cat-stylesheet: #7c3aed;
+  --wt-cat-image: #059669;
+  --wt-cat-font: #db2777;
+  --wt-cat-xhr: #0891b2;
+  --wt-cat-websocket: #a21caf;
+  --wt-cat-media: #0d9488;
+  --wt-cat-other: #64748b;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--wt-bg);
+  color: var(--wt-ink);
+  font-family:
+    ui-sans-serif, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Slim scrollbars that match the theme */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--wt-line) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--wt-line);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* React Flow theming */
+.react-flow__attribution {
+  display: none;
+}
+.react-flow__edge-path {
+  stroke: var(--wt-line);
+}
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: var(--wt-accent);
+}
+.react-flow__handle {
+  background: var(--wt-faint);
+  border: none;
+  width: 6px;
+  height: 6px;
+}
+.react-flow__controls {
+  box-shadow: none;
+  border: 1px solid var(--wt-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.react-flow__controls-button {
+  background: var(--wt-surface);
+  border-bottom: 1px solid var(--wt-line);
+  fill: var(--wt-dim);
+}
+.react-flow__controls-button:hover {
+  background: var(--wt-raised);
+}

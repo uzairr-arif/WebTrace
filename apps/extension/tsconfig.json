@@ -1,0 +1,15 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "./.wxt/wxt.d.ts",
+    "entrypoints",
+    "lib",
+    "components",
+    "theme",
+    "wxt.config.ts"
+  ]
+}
