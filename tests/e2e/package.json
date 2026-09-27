@@ -1,0 +1,15 @@
+{
+  "name": "webtrace-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Playwright E2E — loads the built extension in Chromium and verifies live capture end to end.",
+  "license": "MIT",
+  "scripts": {
+    "test": "playwright test",
+    "browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.0",
+    "playwright": "^1.53.0"
+  }
+}
