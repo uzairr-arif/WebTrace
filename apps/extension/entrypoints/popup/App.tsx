@@ -16,12 +16,24 @@ export function App() {
   useEffect(() => {
     let alive = true;
     const poll = async () => {
-      const tab = await sendToBackground<ActiveTabInfo>({ type: 'webtrace:getActiveTab' });
-      if (!alive) return;
-      setActiveTab(tab ?? null);
+      // Explicit ?tab= param (deep links / screenshots) wins over the active tab.
+      const param = new URLSearchParams(window.location.search).get('tab');
+      const parsed = param !== null ? Number(param) : Number.NaN;
+      const tabId = Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
+      if (tabId === undefined) {
+        const tab = await sendToBackground<ActiveTabInfo>({ type: 'webtrace:getActiveTab' });
+        if (!alive) return;
+        setActiveTab(tab ?? null);
+        const data = await sendToBackground<TabOverview>({
+          type: 'webtrace:getTabOverview',
+          tabId: tab?.id,
+        });
+        if (alive) setOverview(data ?? null);
+        return;
+      }
       const data = await sendToBackground<TabOverview>({
         type: 'webtrace:getTabOverview',
-        tabId: tab?.id,
+        tabId,
       });
       if (alive) setOverview(data ?? null);
     };
@@ -34,8 +46,9 @@ export function App() {
   }, []);
 
   const openFlow = async () => {
-    if (activeTab?.id !== undefined) {
-      await sendToBackground({ type: 'webtrace:openSidePanel', tabId: activeTab.id });
+    const tabId = activeTab?.id ?? overview?.tabId;
+    if (tabId !== undefined) {
+      await sendToBackground({ type: 'webtrace:openSidePanel', tabId });
     }
     window.close();
   };
@@ -67,11 +80,11 @@ export function App() {
       {/* page */}
       <div className="border-b border-line px-3 py-2">
         <p className="text-[9px] uppercase tracking-wider text-faint">Current page</p>
-        <p className="mt-0.5 truncate text-[12px] font-medium" title={activeTab?.title}>
-          {activeTab?.title ?? '—'}
+        <p className="mt-0.5 truncate text-[12px] font-medium" title={overview?.pageTitle ?? activeTab?.title}>
+          {overview?.pageTitle ?? activeTab?.title ?? '—'}
         </p>
-        <p className="truncate font-mono text-[10px] text-dim" title={activeTab?.url}>
-          {activeTab?.url ?? ''}
+        <p className="truncate font-mono text-[10px] text-dim" title={overview?.pageUrl ?? activeTab?.url}>
+          {hostOf(overview?.pageUrl ?? activeTab?.url)}
         </p>
       </div>
 
@@ -140,8 +153,9 @@ export function App() {
           <button
             type="button"
             onClick={() => {
-              if (activeTab?.id !== undefined) {
-                void sendToBackground({ type: 'webtrace:clearSession', tabId: activeTab.id });
+              const tabId = activeTab?.id ?? overview?.tabId;
+              if (tabId !== undefined) {
+                void sendToBackground({ type: 'webtrace:clearSession', tabId });
               }
             }}
             className="flex-1 rounded-lg border border-line px-2 py-1.5 text-[11.5px] text-dim transition-colors hover:border-err/50 hover:text-err"
@@ -175,8 +189,7 @@ function Stat({
   value: number;
   accent?: boolean;
   error?: boolean;
-}) {
-  return (
+}) {  return (
     <div className="bg-surface px-2 py-2 text-center">
       <p
         className={`font-mono text-[16px] font-semibold leading-none ${
@@ -188,4 +201,13 @@ function Stat({
       <p className="mt-1 text-[9px] uppercase tracking-wider text-faint">{label}</p>
     </div>
   );
+}
+
+function hostOf(url: string | undefined): string {
+  if (!url) return '';
+  try {
+    return new URL(url).host;
+  } catch {
+    return url;
+  }
 }
