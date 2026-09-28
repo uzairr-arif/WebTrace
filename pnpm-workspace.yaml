@@ -3,12 +3,18 @@ packages:
   - packages/*
   - tests/*
 
-# Dependencies allowed to run install scripts (pnpm 11 security default)
+# Build-script policy (pnpm 11 security default):
+#   true  → the dependency's install script runs
+#   false → explicitly skipped (no error, no execution)
 allowBuilds:
   esbuild: true
-  playwright: true
-  spawn-sync: set this to true or false
   wxt: true
+  # spawn-sync is a legacy child_process polyfill; its postinstall check is
+  # unnecessary on any Node ≥ 12.
+  spawn-sync: false
+  # Playwright's postinstall bulk-downloads every browser — CI installs
+  # Chromium explicitly instead (see .github/workflows/ci.yml).
+  playwright: false
 
 # @vitejs/plugin-react v6 peers on Vite 8; WXT 0.20 currently targets Vite ≤7.
 overrides:

@@ -65,5 +65,8 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm --filter webtrace-e2e browsers
 
+      - name: Install Chromium system dependencies
+        run: pnpm --filter webtrace-e2e exec playwright install-deps chromium
+
       - name: Run E2E
         run: xvfb-run -a pnpm e2e
