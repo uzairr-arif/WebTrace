@@ -15,7 +15,7 @@ pnpm e2e            # Playwright E2E (needs: pnpm --filter webtrace-e2e browsers
 ```
 
 Load the built extension from `apps/extension/.output/chrome-mv3` (see
-[docs/06-LOADING-AND-DEBUGGING.md](docs/06-LOADING-AND-DEBUGGING.md)).
+[docs/development.md](docs/development.md)).
 
 ## Ground rules
 

@@ -26,6 +26,8 @@ The site is fully self-contained (`index.html` + `assets/`). Easiest options:
 The screenshots in `assets/` come from the running product:
 
 ```bash
-node tests/e2e/screenshot.mjs   # writes docs/screenshots/, then copy over
-cp docs/screenshots/*.png apps/website/assets/
+node tests/e2e/screenshot.mjs                        # → docs/screenshots/{dark,light}/
+cp docs/screenshots/light/flow.png assets/live-flow.png
+cp docs/screenshots/dark/details.png assets/explain.png
+cp docs/screenshots/light/timeline.png assets/timeline.png
 ```

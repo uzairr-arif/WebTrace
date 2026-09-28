@@ -23,8 +23,8 @@ Please do not disclose publicly until a fix is available.
 
 ## Scope notes for reporters
 
-- The privacy boundary is described in [PRIVACY.md](PRIVACY.md). The key
-  invariants: no network egress, no body capture, redaction before storage.
+- The privacy boundary is described in [docs/privacy.md](docs/privacy.md). The
+  key invariants: no network egress, no body capture, redaction before storage.
 - The extension requests `webRequest` + `webNavigation` with `<all_urls>` —
   that is the product. Anything that lets those capabilities leak user data
   off-device is a real vulnerability.
