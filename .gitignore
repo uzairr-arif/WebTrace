@@ -34,6 +34,9 @@ Thumbs.db
 .zcode/
 .zcodeignore
 
+# Personal documentation (local-only, never published)
+local/
+
 # Logs
 *.log
 npm-debug.log*
