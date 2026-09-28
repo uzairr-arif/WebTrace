@@ -5,7 +5,7 @@
   "description": "Playwright E2E — loads the built extension in Chromium and verifies live capture end to end.",
   "license": "MIT",
   "scripts": {
-    "test": "playwright test",
+    "e2e": "playwright test",
     "browsers": "playwright install chromium"
   },
   "devDependencies": {

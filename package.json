@@ -9,7 +9,7 @@
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
-    "e2e": "pnpm --filter webtrace-e2e test",
+    "e2e": "pnpm --filter webtrace-e2e e2e",
     "icons": "node scripts/build-icons.mjs"
   },
   "devDependencies": {
