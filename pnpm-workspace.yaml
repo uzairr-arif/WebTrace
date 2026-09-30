@@ -17,5 +17,16 @@ allowBuilds:
   playwright: false
 
 # @vitejs/plugin-react v6 peers on Vite 8; WXT 0.20 currently targets Vite ≤7.
+# The security overrides force patched versions of transitive dev-dependencies
+# flagged by Dependabot (they are pulled in by the WXT toolchain, not by
+# WebTrace code):
+#   shell-quote <1.10  quote() newline injection (critical) + parse() DoS
+#   adm-zip     <0.6   zip-bomb DoS + symlink overwrite
+#   tmp         <0.2.7 path traversal via unsanitized prefix/postfix
+#   uuid        <14    missing buffer bounds check in v3/v5/v6
 overrides:
   '@vitejs/plugin-react': ^4.7.0
+  shell-quote: ^1.10.0
+  adm-zip: ^0.6.1
+  tmp: ^0.2.7
+  uuid: ^14.0.2

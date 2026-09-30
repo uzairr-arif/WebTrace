@@ -36,6 +36,7 @@ Thumbs.db
 
 # Personal documentation (local-only, never published)
 local/
+website\README.md
 
 # Logs
 *.log
