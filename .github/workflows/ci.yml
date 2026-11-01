@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+# Least privilege: the token only ever needs to read the repo.
+permissions:
+  contents: read
+
 jobs:
   verify:
     name: Typecheck, test, build
