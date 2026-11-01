@@ -38,6 +38,15 @@ Thumbs.db
 local/
 website\README.md
 
+# Marketing kit — videos, promos and their pipelines stay local, never published
+brag-output*/
+docs/marketing/
+scripts/marketing/
+tests/e2e/marketing-capture.mjs
+tests/e2e/brag-frames.mjs
+tests/e2e/brag2-frames.mjs
+tests/e2e/promo-shots.mjs
+
 # Logs
 *.log
 npm-debug.log*
